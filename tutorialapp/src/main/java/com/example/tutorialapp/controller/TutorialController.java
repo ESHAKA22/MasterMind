@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tutorials")
+@CrossOrigin(origins = "*") // Allows requests from any origin (e.g., the frontend)
 public class TutorialController {
 
     @Autowired

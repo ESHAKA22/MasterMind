@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <!-- Header -->
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Tutorial App</h1>
+
+        <!-- Create Tutorial Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Create a New Tutorial</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-600">Title</label>
+                    <input type="text" id="title" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter tutorial title">
+                </div>
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-600">Description</label>
+                    <textarea id="description" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Enter description"></textarea>
+                </div>
+                <div>
+                    <label for="codeSnippet" class="block text-sm font-medium text-gray-600">Code Snippet</label>
+                    <textarea id="codeSnippet" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" rows="3" placeholder="Enter code snippet"></textarea>
+                </div>
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-gray-600">Tags (comma-separated)</label>
+                    <input type="text" id="tags" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Java, Streams, Programming">
+                </div>
+                <button onclick="createTutorial()" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition">Create Tutorial</button>
+            </div>
+        </div>
+
+        <!-- Tutorials List -->
+        <div id="tutorialsList" class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Tutorials</h2>
+            <div id="tutorials" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display all tutorials on page load
+        window.onload = fetchTutorials;
+
+        // Function to create a new tutorial
+        async function createTutorial() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const codeSnippet = document.getElementById('codeSnippet').value;
+            const tagsInput = document.getElementById('tags').value;
+
+            // Split tags by comma and trim whitespace
+            const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+            // Validate inputs
+            if (!title || !description || !codeSnippet) {
+                alert('Please fill in all required fields (title, description, code snippet).');
+                return;
+            }
+
+            const tutorial = { title, description, codeSnippet, tags };
+
+            try {
+                const response = await fetch('http://localhost:9090/api/tutorials', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tutorial),
+                });
+
+                if (response.ok) {
+                    alert('Tutorial created successfully!');
+                    // Clear the form
+                    document.getElementById('title').value = '';
+                    document.getElementById('description').value = '';
+                    document.getElementById('codeSnippet').value = '';
+                    document.getElementById('tags').value = '';
+                    // Refresh the tutorials list
+                    fetchTutorials();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to create tutorial: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error creating tutorial: ' + error.message);
+            }
+        }
+
+        // Function to fetch and display all tutorials
+        async function fetchTutorials() {
+            try {
+                const response = await fetch('http://localhost:9090/api/tutorials');
+                const tutorials = await response.json();
+
+                const tutorialsDiv = document.getElementById('tutorials');
+                tutorialsDiv.innerHTML = ''; // Clear existing content
+
+                if (tutorials.length === 0) {
+                    tutorialsDiv.innerHTML = '<p class="text-gray-500">No tutorials found.</p>';
+                    return;
+                }
+
+                tutorials.forEach(tutorial => {
+                    const tutorialDiv = document.createElement('div');
+                    tutorialDiv.className = 'border-b pb-4';
+                    tutorialDiv.innerHTML = `
+                        <h3 class="text-lg font-medium text-gray-800">${tutorial.title}</h3>
+                        <p class="text-gray-600">${tutorial.description}</p>
+                        <pre class="bg-gray-100 p-2 rounded-md mt-2 font-mono text-sm">${tutorial.codeSnippet}</pre>
+                        <p class="text-gray-500 text-sm mt-2">Tags: ${tutorial.tags.join(', ')}</p>
+                    `;
+                    tutorialsDiv.appendChild(tutorialDiv);
+                });
+            } catch (error) {
+                document.getElementById('tutorials').innerHTML = '<p class="text-red-500">Error fetching tutorials: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>
