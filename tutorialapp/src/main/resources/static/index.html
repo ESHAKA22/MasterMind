@@ -42,6 +42,34 @@
             </div>
         </div>
 
+        <!-- Edit Tutorial Form (Hidden by default) -->
+        <div id="editForm" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Edit Tutorial</h2>
+            <div class="space-y-4">
+                <input type="hidden" id="editId">
+                <div>
+                    <label for="editTitle" class="block text-sm font-medium text-gray-600">Title</label>
+                    <input type="text" id="editTitle" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter tutorial title">
+                </div>
+                <div>
+                    <label for="editDescription" class="block text-sm font-medium text-gray-600">Description</label>
+                    <textarea id="editDescription" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Enter description"></textarea>
+                </div>
+                <div>
+                    <label for="editCodeSnippet" class="block text-sm font-medium text-gray-600">Code Snippet</label>
+                    <textarea id="editCodeSnippet" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" rows="3" placeholder="Enter code snippet"></textarea>
+                </div>
+                <div>
+                    <label for="editTags" class="block text-sm font-medium text-gray-600">Tags (comma-separated)</label>
+                    <input type="text" id="editTags" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Java, Streams, Programming">
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="updateTutorial()" class="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 transition">Save Changes</button>
+                    <button onclick="cancelEdit()" class="w-full bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Tutorials List -->
         <div id="tutorialsList" class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-2xl font-semibold mb-4 text-gray-700">Tutorials</h2>
@@ -123,7 +151,10 @@
                                 <pre class="bg-gray-100 p-2 rounded-md mt-2 font-mono text-sm">${tutorial.codeSnippet}</pre>
                                 <p class="text-gray-500 text-sm mt-2">Tags: ${tutorial.tags.join(', ')}</p>
                             </div>
-                            <button onclick="deleteTutorial('${tutorial.id}')" class="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition">Delete</button>
+                            <div class="flex space-x-2">
+                                <button onclick="editTutorial('${tutorial.id}', '${tutorial.title}', '${tutorial.description}', \`${tutorial.codeSnippet}\`, '${tutorial.tags.join(', ')}')" class="bg-yellow-600 text-white px-3 py-1 rounded-md hover:bg-yellow-700 transition">Edit</button>
+                                <button onclick="deleteTutorial('${tutorial.id}')" class="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition">Delete</button>
+                            </div>
                         </div>
                     `;
                     tutorialsDiv.appendChild(tutorialDiv);
@@ -155,6 +186,72 @@
             } catch (error) {
                 alert('Error deleting tutorial: ' + error.message);
             }
+        }
+
+        // Function to show the edit form with pre-filled data
+        function editTutorial(id, title, description, codeSnippet, tags) {
+            // Populate the edit form
+            document.getElementById('editId').value = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editCodeSnippet').value = codeSnippet;
+            document.getElementById('editTags').value = tags;
+
+            // Show the edit form and hide the create form
+            document.getElementById('editForm').classList.remove('hidden');
+            document.getElementById('editForm').scrollIntoView({ behavior: 'smooth' });
+            document.querySelector('.bg-white.p-6.rounded-lg.shadow-md.mb-8').classList.add('hidden'); // Hide create form
+        }
+
+        // Function to update a tutorial
+        async function updateTutorial() {
+            const id = document.getElementById('editId').value;
+            const title = document.getElementById('editTitle').value;
+            const description = document.getElementById('editDescription').value;
+            const codeSnippet = document.getElementById('editCodeSnippet').value;
+            const tagsInput = document.getElementById('editTags').value;
+
+            // Split tags by comma and trim whitespace
+            const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+            // Validate inputs
+            if (!title || !description || !codeSnippet) {
+                alert('Please fill in all required fields (title, description, code snippet).');
+                return;
+            }
+
+            const tutorial = { title, description, codeSnippet, tags };
+
+            try {
+                const response = await fetch(`http://localhost:9090/api/tutorials/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tutorial),
+                });
+
+                if (response.ok) {
+                    alert('Tutorial updated successfully!');
+                    // Hide the edit form and show the create form
+                    document.getElementById('editForm').classList.add('hidden');
+                    document.querySelector('.bg-white.p-6.rounded-lg.shadow-md.mb-8').classList.remove('hidden');
+                    // Refresh the tutorials list
+                    fetchTutorials();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to update tutorial: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error updating tutorial: ' + error.message);
+            }
+        }
+
+        // Function to cancel editing
+        function cancelEdit() {
+            // Hide the edit form and show the create form
+            document.getElementById('editForm').classList.add('hidden');
+            document.querySelector('.bg-white.p-6.rounded-lg.shadow-md.mb-8').classList.remove('hidden');
         }
     </script>
 </body>

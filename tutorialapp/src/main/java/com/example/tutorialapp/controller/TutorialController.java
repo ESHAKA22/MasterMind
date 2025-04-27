@@ -33,4 +33,8 @@ public class TutorialController {
     public void deleteTutorial(@PathVariable String id) {
         tutorialService.deleteTutorial(id);
     }
+    @PutMapping("/{id}")
+    public Tutorial updateTutorial(@PathVariable String id, @RequestBody Tutorial tutorial) {
+        return tutorialService.updateTutorial(id, tutorial);
+    }
 }
