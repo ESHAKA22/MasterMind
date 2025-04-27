@@ -24,4 +24,7 @@ public class TutorialService {
     public List<Tutorial> searchTutorialsByTag(String tag) {
         return tutorialRepository.findByTagsContaining(tag);
     }
+    public void deleteTutorial(String id) {
+        tutorialRepository.deleteById(id);
+    }
 }

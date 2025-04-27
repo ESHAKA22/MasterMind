@@ -29,4 +29,8 @@ public class TutorialController {
     public List<Tutorial> searchTutorialsByTag(@RequestParam String tag) {
         return tutorialService.searchTutorialsByTag(tag);
     }
+    @DeleteMapping("/{id}")
+    public void deleteTutorial(@PathVariable String id) {
+        tutorialService.deleteTutorial(id);
+    }
 }
