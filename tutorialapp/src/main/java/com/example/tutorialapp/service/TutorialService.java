@@ -24,11 +24,18 @@ public class TutorialService {
     public List<Tutorial> searchTutorialsByTag(String tag) {
         return tutorialRepository.findByTagsContaining(tag);
     }
+
     public void deleteTutorial(String id) {
         tutorialRepository.deleteById(id);
     }
+
     public Tutorial updateTutorial(String id, Tutorial updatedTutorial) {
         updatedTutorial.setId(id); // Ensure the ID is set to the one from the URL
         return tutorialRepository.save(updatedTutorial);
+    }
+
+    public Tutorial getTutorialById(String id) {
+        return tutorialRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tutorial not found with id: " + id));
     }
 }

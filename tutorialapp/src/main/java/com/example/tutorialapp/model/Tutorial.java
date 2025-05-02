@@ -15,4 +15,5 @@ public class Tutorial {
     private String description;
     private String codeSnippet;
     private List<String> tags;
+    private String creatorId; // New field to track post creator
 }

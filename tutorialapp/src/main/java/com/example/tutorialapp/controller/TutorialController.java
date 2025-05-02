@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tutorials")
-@CrossOrigin(origins = "*") // Allows requests from any origin (e.g., the frontend)
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:9090"}) // Updated for React app
 public class TutorialController {
 
     @Autowired
@@ -29,12 +29,20 @@ public class TutorialController {
     public List<Tutorial> searchTutorialsByTag(@RequestParam String tag) {
         return tutorialService.searchTutorialsByTag(tag);
     }
+
     @DeleteMapping("/{id}")
     public void deleteTutorial(@PathVariable String id) {
         tutorialService.deleteTutorial(id);
     }
+
     @PutMapping("/{id}")
     public Tutorial updateTutorial(@PathVariable String id, @RequestBody Tutorial tutorial) {
         return tutorialService.updateTutorial(id, tutorial);
     }
+     // GET mapping to retrieve a tutorial by ID
+     @GetMapping("/{id}")
+     public Tutorial getTutorialById(@PathVariable String id) {
+         return tutorialService.getTutorialById(id);
+     }
+    
 }
