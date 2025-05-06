@@ -1,0 +1,105 @@
+/* Other CSS you might have */
+
+body {
+  font-family: 'Arial', sans-serif;
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.carousel-item {
+  padding: 20px;
+}
+
+/* Custom styles that complement Bootstrap */
+
+/* Hover effect for links */
+.link-opacity-75 {
+  opacity: 0.75;
+  transition: opacity 0.3s ease;
+}
+
+.link-opacity-100-hover:hover {
+  opacity: 1;
+}
+
+/* Bootstrap extensions */
+.min-h-screen {
+  min-height: calc(100vh - 76px - 450px); /* Adjust based on your header/footer height */
+}
+
+/* Hover border effect for navbar links */
+.hover-border-primary:hover {
+  border-bottom-color: var(--bs-primary) !important;
+}
+
+/* Tailwind-like opacity helpers */
+.opacity-75 {
+  opacity: 0.75;
+  transition: opacity 0.3s ease;
+}
+
+.hover-opacity-100:hover {
+  opacity: 1;
+}
+
+/* Cursor pointer utility */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* For smaller than small text */
+.smaller {
+  font-size: 0.75rem;
+}
+
+/* For rotate utility */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Add these to your index.css or create a new lessons.css file */
+.lessons-container {
+  margin-top: 20px;
+}
+
+.step {
+  text-align: center;
+  position: relative;
+}
+
+.step.active {
+  color: #4169e1;
+  font-weight: 500;
+}
+
+.lesson-preview-toggle {
+  margin-top: 15px;
+}
+
+.lesson-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.file-preview {
+  padding: 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  margin-top: 10px;
+  background-color: #f8f9fa;
+}
+
+.file-preview-name {
+  font-weight: 500;
+}
+
+.file-preview-size {
+  font-size: 0.875rem;
+  color: #6c757d;
+}

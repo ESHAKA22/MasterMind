@@ -1,0 +1,5 @@
+com\example\newCourse\controller\CourseController.class
+com\example\newCourse\repository\CourseRepository.class
+com\example\newCourse\model\StudentProgress.class
+com\example\newCourse\NewCourseApplication.class
+com\example\newCourse\model\Course.class
