@@ -437,7 +437,7 @@ export default function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-5" style={{ backgroundColor: colors.light }}>
+      {/* <section className="py-5" style={{ backgroundColor: colors.light }}>
         <Container className="py-3">
           <div className="mx-auto text-center" style={{ maxWidth: "48rem" }}>
             <h3 className="fw-bold mb-3">Subscribe to Our Newsletter</h3>
@@ -464,7 +464,7 @@ export default function Home() {
             </Row>
           </div>
         </Container>
-      </section>
+      </section> */}
     </div>
   );
 }
