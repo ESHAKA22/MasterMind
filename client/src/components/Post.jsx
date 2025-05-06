@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
 
 export default function Post() {
@@ -104,7 +105,6 @@ export default function Post() {
       if (res.ok) {
         setNotification("Comment added successfully!");
         setCommentText("");
-        // Refresh the data instead of reloading the page
         await fetchChallenges();
       } else {
         throw new Error(`Server responded with status: ${res.status}`);
@@ -150,7 +150,6 @@ export default function Post() {
         setNotification("Comment updated successfully!");
         setEditingCommentId(null);
         setEditedCommentText("");
-        // Refresh the data
         await fetchChallenges();
       } else {
         throw new Error(`Server responded with status: ${res.status}`);
@@ -195,19 +194,27 @@ export default function Post() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
-          <p className="text-gray-600">Loading challenges...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="text-center"
+        >
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading challenges...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full text-center">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-16 w-16 text-red-500 mx-auto mb-4"
@@ -222,86 +229,101 @@ export default function Post() {
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
             Error Loading Challenges
           </h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={fetchChallenges}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-2.5 shadow-md transition-all w-full"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-6 py-2.5 shadow-lg transition-all duration-300"
           >
             Try Again
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-50 w-full">
-      {/* Notification Toast */}
-      {notification && (
-        <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 transition-all animate-fade-in">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span>{notification}</span>
-          <button
-            onClick={() => setNotification(null)}
-            className="ml-2 text-white hover:text-gray-200"
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 w-full">
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 right-4 z-50 bg-blue-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 backdrop-blur-sm bg-opacity-90"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
+              className="h-5 w-5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
               <path
                 fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
                 clipRule="evenodd"
               />
             </svg>
-          </button>
-        </div>
-      )}
+            <span>{notification}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-2 hover:opacity-80 transition-opacity"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Hero section with overlay */}
-      <div className="relative h-64 md:h-80 mb-6 w-full">
+      <div className="relative h-72 md:h-96 mb-8 w-full overflow-hidden">
         <img
           src="https://images.pexels.com/photos/34600/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
           alt="Coding challenges banner"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transform scale-105 transition-transform duration-1000 hover:scale-100"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/80 to-indigo-800/70"></div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white text-center shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/70 to-indigo-800/60 backdrop-blur-sm"></div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <h1 className="text-4xl md:text-6xl font-bold text-white text-center drop-shadow-lg tracking-tight">
             Coding Challenges
           </h1>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Main content */}
-      <div className="w-full max-w-5xl mx-auto px-4 pb-16 -mt-10">
-        <div className="flex justify-end mb-6 w-full">
+      <div className="w-full max-w-6xl mx-auto px-4 pb-16 -mt-12">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-end mb-8"
+        >
           <Link to="/create">
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-2.5 shadow-md transition-all flex items-center gap-2"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-6 py-3 shadow-lg transition-all duration-300 flex items-center gap-2 group"
               aria-label="Create new challenge"
             >
-              <span>New Challenge</span>
+              <span className="group-hover:scale-105 transition-transform">
+                New Challenge
+              </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="h-5 w-5 group-hover:rotate-45 transition-transform"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -313,13 +335,17 @@ export default function Post() {
               </svg>
             </button>
           </Link>
-        </div>
+        </motion.div>
 
         {workouts.length === 0 ? (
-          <div className="bg-white rounded-xl shadow p-8 text-center w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-12 text-center border border-gray-100"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto text-gray-300 mb-4"
+              className="h-16 w-16 mx-auto text-gray-400 mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -331,37 +357,40 @@ export default function Post() {
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
-            <h3 className="text-xl font-medium text-gray-700 mb-2">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">
               No challenges yet
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-gray-600 mb-6">
               Create your first coding challenge to get started!
             </p>
             <Link to="/create">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-2.5 shadow-md transition-all">
+              <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-full px-6 py-3 shadow-lg transition-all duration-300">
                 Create Challenge
               </button>
             </Link>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-6 w-full">
+          <div className="space-y-8">
             {workouts.map((challenge) => (
-              <div
+              <motion.div
                 key={challenge.id}
-                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
               >
-                {/* Header with user info and actions */}
-                <div className="p-5 border-b border-gray-100">
+                <div className="p-6 border-b border-gray-100/50">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <img
+                    <div className="flex items-center gap-4">
+                      {/* <img
                         src="https://images.pexels.com/photos/34600/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
                         alt="User avatar"
-                        className="w-10 h-10 rounded-full object-cover border-2 border-blue-100"
-                      />
+                        className="w-12 h-12 rounded-full object-cover border-2 border-blue-200 transform hover:scale-105 transition-transform"
+                      /> */}
                       <div>
-                        <h3 className="font-semibold text-gray-800">Ranyan</h3>
-                        <p className="text-xs text-gray-500">
+                        {/* <h3 className="font-semibold text-gray-800 text-lg">
+                          Ranyan
+                        </h3> */}
+                        <p className="text-sm text-gray-500">
                           {moment(challenge.created).format(
                             "MMM DD, YYYY • h:mm A"
                           )}
@@ -369,10 +398,10 @@ export default function Post() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <Link
                         to={`/updatepost/${challenge.id}`}
-                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                         title="Edit challenge"
                         aria-label="Edit challenge"
                       >
@@ -387,7 +416,7 @@ export default function Post() {
                       </Link>
                       <button
                         onClick={() => handleDeleteChallenge(challenge.id)}
-                        className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                         title="Delete challenge"
                         aria-label="Delete challenge"
                       >
@@ -408,36 +437,36 @@ export default function Post() {
                   </div>
                 </div>
 
-                {/* Post content */}
-                <div className="p-5">
-                  <div className="mb-3">
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                <div className="p-6">
+                  <div className="mb-4">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <span className="text-xs font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
                         #coding
                       </span>
-                      <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-medium text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full">
                         #challenge
                       </span>
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">
                       {challenge.title}
                     </h2>
-                    <p className="text-gray-700">{challenge.content}</p>
+                    <p className="text-gray-600 leading-relaxed">
+                      {challenge.content}
+                    </p>
                   </div>
 
-                  {/* Resource links */}
-                  <div className="flex flex-col gap-2 my-4">
+                  <div className="flex flex-col gap-3 my-5">
                     {challenge.glink && (
                       <a
                         href={challenge.glink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                        className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors group"
                         aria-label="View coding challenge"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
+                          className="h-5 w-5 group-hover:scale-110 transition-transform"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -456,12 +485,12 @@ export default function Post() {
                         href={challenge.ylink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-800 transition-colors"
+                        className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-800 transition-colors group"
                         aria-label="Watch video guide"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
+                          className="h-5 w-5 group-hover:scale-110 transition-transform"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -473,31 +502,34 @@ export default function Post() {
                     )}
                   </div>
 
-                  {/* Post image */}
                   {challenge.image && challenge.image.length > 0 && (
-                    <div className="mt-4 rounded-lg overflow-hidden">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mt-5 rounded-xl overflow-hidden"
+                    >
                       <img
                         src={challenge.image[0]}
                         alt="Challenge visual"
-                        className="w-full h-auto max-h-96 object-cover"
+                        className="w-full h-auto max-h-96 object-cover transform hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
-                    </div>
+                    </motion.div>
                   )}
                 </div>
 
-                {/* Actions bar */}
-                <div className="flex items-center px-5 py-3 border-t border-gray-100">
-                  <button
+                <div className="flex items-center px-6 py-4 border-t border-gray-100/50">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleLike(challenge.id)}
-                    className="flex items-center gap-1.5 text-gray-700 hover:text-red-600 transition-colors"
+                    className="flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors"
                     aria-label={`Like this challenge (${challenge.likes} likes)`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className={`w-5 h-5 ${
+                      className={`w-6 h-6 ${
                         challenge.likes > 0 ? "text-red-500" : ""
                       }`}
                     >
@@ -506,11 +538,12 @@ export default function Post() {
                     <span className="text-sm font-medium">
                       {challenge.likes}
                     </span>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => toggleComments(challenge.id)}
-                    className="ml-6 flex items-center gap-1.5 text-gray-700 hover:text-blue-600 transition-colors"
+                    className="ml-8 flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
                     aria-label={`${
                       expandedComments[challenge.id] ? "Hide" : "Show"
                     } comments (${challenge.comments.length} comments)`}
@@ -522,7 +555,7 @@ export default function Post() {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className={`w-5 h-5 ${
+                      className={`w-6 h-6 ${
                         expandedComments[challenge.id] ? "text-blue-500" : ""
                       }`}
                     >
@@ -535,18 +568,19 @@ export default function Post() {
                     <span className="text-sm font-medium">
                       {challenge.comments.length}
                     </span>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleShare(challenge.id)}
-                    className="ml-6 flex items-center gap-1.5 text-gray-700 hover:text-green-600 transition-colors"
+                    className="ml-8 flex items-center gap-2 text-gray-700 hover:text-green-600 transition-colors"
                     aria-label="Share this challenge"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className="w-5 h-5"
+                      className="w-6 h-6"
                     >
                       <path
                         fillRule="evenodd"
@@ -555,185 +589,204 @@ export default function Post() {
                       />
                     </svg>
                     <span className="text-sm font-medium">Share</span>
-                  </button>
+                  </motion.button>
                 </div>
 
-                {/* Comments section */}
-                <div
-                  className={`border-t border-gray-100 overflow-hidden transition-all duration-300 ${
-                    expandedComments[challenge.id] ? "max-h-screen" : "max-h-0"
-                  }`}
-                >
-                  <div className="p-5">
-                    {/* Comment input */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <input
-                        type="text"
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Add a comment..."
-                        maxLength={200}
-                        className="w-full px-4 py-2 text-sm rounded-full bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                        aria-label="Add a comment"
-                      />
-                      <button
-                        onClick={() => handleComment(challenge.id, commentText)}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-                        disabled={!commentText.trim()}
-                      >
-                        Post
-                      </button>
-                    </div>
-
-                    {/* Comments list */}
-                    {challenge.comments.length > 0 ? (
-                      <div className="space-y-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                        {challenge.comments.map((comment, index) => (
-                          <div
-                            key={index}
-                            className="bg-gray-50 rounded-lg p-3"
+                <AnimatePresence>
+                  {expandedComments[challenge.id] && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="border-t border-gray-100/50"
+                    >
+                      <div className="p-6">
+                        <div className="flex items-center gap-4 mb-6">
+                          <input
+                            type="text"
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            placeholder="Add a comment..."
+                            maxLength={200}
+                            className="w-full px-5 py-3 text-sm rounded-full bg-gray-100/50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
+                            aria-label="Add a comment"
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() =>
+                              handleComment(challenge.id, commentText)
+                            }
+                            className="px-6 py-3 text-sm font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-all duration-300 disabled:bg-blue-300 disabled:cursor-not-allowed shadow-md"
+                            disabled={!commentText.trim()}
                           >
-                            {editingCommentId === comment.id ? (
-                              <div className="flex flex-col gap-2">
-                                <input
-                                  type="text"
-                                  value={editedCommentText}
-                                  onChange={(e) =>
-                                    setEditedCommentText(e.target.value)
-                                  }
-                                  className="w-full px-3 py-1.5 text-sm rounded bg-white border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                                  autoFocus
-                                  aria-label="Edit comment"
-                                />
-                                <div className="flex justify-end gap-2">
-                                  <button
-                                    onClick={() => {
-                                      setEditingCommentId(null);
-                                      setEditedCommentText("");
-                                    }}
-                                    className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleEditComment(
-                                        challenge.id,
-                                        comment.id
-                                      )
-                                    }
-                                    className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-                                    disabled={!editedCommentText.trim()}
-                                  >
-                                    Save
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
-                                      {comment.comment &&
-                                        comment.comment.charAt(0).toUpperCase()}
-                                    </div>
-                                    <p className="text-xs text-gray-500">
-                                      {moment(comment.createdAt).fromNow()}
-                                    </p>
-                                  </div>
+                            Post
+                          </motion.button>
+                        </div>
 
-                                  {/* Only show edit/delete if user is the comment author */}
-                                  {currentUser && (
-                                    <div className="flex gap-2">
-                                      <button
+                        {challenge.comments.length > 0 ? (
+                          <div className="space-y-4 max-h-96 overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {challenge.comments.map((comment, index) => (
+                              <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-gray-50/50 rounded-xl p-4 backdrop-blur-sm border border-gray-100"
+                              >
+                                {editingCommentId === comment.id ? (
+                                  <div className="flex flex-col gap-3">
+                                    <input
+                                      type="text"
+                                      value={editedCommentText}
+                                      onChange={(e) =>
+                                        setEditedCommentText(e.target.value)
+                                      }
+                                      className="w-full px-4 py-2 text-sm rounded-lg bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                                      autoFocus
+                                      aria-label="Edit comment"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                      <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={() => {
-                                          setEditingCommentId(comment.id);
-                                          setEditedCommentText(comment.comment);
+                                          setEditingCommentId(null);
+                                          setEditedCommentText("");
                                         }}
-                                        className="p-1 rounded hover:bg-gray-200 transition-colors"
-                                        aria-label="Edit comment"
+                                        className="px-4 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all"
                                       >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-3.5 w-3.5 text-gray-500"
-                                          viewBox="0 0 20 20"
-                                          fill="currentColor"
-                                        >
-                                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
-                                      </button>
-                                      <button
+                                        Cancel
+                                      </motion.button>
+                                      <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={() =>
-                                          handleDeleteComment(
+                                          handleEditComment(
                                             challenge.id,
                                             comment.id
                                           )
                                         }
-                                        className="p-1 rounded hover:bg-gray-200 transition-colors"
-                                        aria-label="Delete comment"
+                                        className="px-4 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-all disabled:bg-blue-300 disabled:cursor-not-allowed"
+                                        disabled={!editedCommentText.trim()}
                                       >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-3.5 w-3.5 text-gray-500"
-                                          viewBox="0 0 20 20"
-                                          fill="currentColor"
-                                        >
-                                          <path
-                                            fillRule="evenodd"
-                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                            clipRule="evenodd"
-                                          />
-                                        </svg>
-                                      </button>
+                                        Save
+                                      </motion.button>
                                     </div>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-700">
-                                  {comment.comment}
-                                </p>
-                              </>
-                            )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+                                          {comment.comment &&
+                                            comment.comment
+                                              .charAt(0)
+                                              .toUpperCase()}
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                          {moment(comment.createdAt).fromNow()}
+                                        </p>
+                                      </div>
+
+                                      {currentUser && (
+                                        <div className="flex gap-2">
+                                          <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            onClick={() => {
+                                              setEditingCommentId(comment.id);
+                                              setEditedCommentText(
+                                                comment.comment
+                                              );
+                                            }}
+                                            className="p-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                                            aria-label="Edit comment"
+                                          >
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-4 w-4 text-gray-500"
+                                              viewBox="0 0 20 20"
+                                              fill="currentColor"
+                                            >
+                                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                          </motion.button>
+                                          <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            onClick={() =>
+                                              handleDeleteComment(
+                                                challenge.id,
+                                                comment.id
+                                              )
+                                            }
+                                            className="p-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                                            aria-label="Delete comment"
+                                          >
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-4 w-4 text-gray-500"
+                                              viewBox="0 0 20 20"
+                                              fill="currentColor"
+                                            >
+                                              <path
+                                                fillRule="evenodd"
+                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                clipRule="evenodd"
+                                              />
+                                            </svg>
+                                          </motion.button>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-700">
+                                      {comment.comment}
+                                    </p>
+                                  </>
+                                )}
+                              </motion.div>
+                            ))}
                           </div>
-                        ))}
+                        ) : (
+                          <div className="text-center py-10">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-12 w-12 mx-auto text-gray-300 mb-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                              />
+                            </svg>
+                            <p className="text-gray-500 text-sm">
+                              No comments yet. Be the first to comment!
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-12 w-12 mx-auto text-gray-300 mb-3"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                          />
-                        </svg>
-                        <p className="text-gray-500 text-sm">
-                          No comments yet. Be the first to comment!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Back to top button */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white rounded-full p-3 shadow-lg hover:bg-blue-700 transition-colors"
+        className="fixed bottom-6 right-6 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-all duration-300"
         aria-label="Back to top"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
+          className="h-6 w-6"
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -743,36 +796,7 @@ export default function Post() {
             clipRule="evenodd"
           />
         </svg>
-      </button>
-
-      {/* Add this at the end of your component for accessibility support */}
-      <style jsx global>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out forwards;
-        }
-
-        /* Basic scrollbar styling */
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-        .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
-          background-color: #d1d5db;
-          border-radius: 3px;
-        }
-        .scrollbar-track-gray-100::-webkit-scrollbar-track {
-          background-color: #f3f4f6;
-        }
-      `}</style>
+      </motion.button>
     </div>
   );
 }
