@@ -1,0 +1,90 @@
+/* Custom Variables */
+:root {
+  --primary-green: #198754;       /* Dark Green */
+  --light-green: #d1e7dd;        /* Light Green */
+  --dark-green: #1b5e20;         /* Deep Green */
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --dark-gray: #212529;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--light-gray);
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+  color: white;
+  padding: 3rem 0;
+}
+
+/* Ad Banner */
+.ad-banner {
+  background-color: var(--light-green);
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+/* Card Styling */
+.card {
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Code Snippet */
+pre {
+  background-color: var(--light-gray);
+  padding: 1rem;
+  border-radius: 0.25rem;
+  border-left: 4px solid var(--primary-green);
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+}
+
+/* Tags */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+.bg-light-green {
+  background-color: var(--light-green);
+}
+
+/* Buttons */
+.btn-success {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
+.btn-success:hover {
+  background-color: var(--dark-green);
+  border-color: var(--dark-green);
+}
+
+/* Input Group */
+.input-group .btn {
+  z-index: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 0;
+  }
+  
+  .hero-section h1 {
+    font-size: 2.5rem;
+  }
+}
