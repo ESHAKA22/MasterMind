@@ -5,27 +5,7 @@ import { Container, Row, Col, Button, Card, Badge, Form, InputGroup } from 'reac
 
 export default function Home() {
   const [featuredCourses, setFeaturedCourses] = useState([
-    {
-      id: 1,
-      title: "Complete Web Development Bootcamp",
-      description: "Learn HTML, CSS, JavaScript, React and Node.js to become a full-stack web developer",
-      category: "Web Development",
-      level: "Beginner"
-    },
-    {
-      id: 2,
-      title: "Python for Data Science",
-      description: "Master Python programming and essential libraries for data analysis and visualization",
-      category: "Data Science",
-      level: "Intermediate"
-    },
-    {
-      id: 3,
-      title: "Advanced React & Redux",
-      description: "Take your React skills to the next level with advanced patterns and state management",
-      category: "Web Development",
-      level: "Advanced"
-    }
+    
   ]);
 
   useEffect(() => {
@@ -124,7 +104,7 @@ export default function Home() {
                   }}
                 ></div>
                 <img
-                  src="/api/placeholder/600/400"
+                  src="../images/coding.jpg"
                   alt="Student learning coding"
                   className="rounded-4 shadow img-fluid w-100 object-fit-cover"
                   style={{ height: "320px", position: "relative", zIndex: 1 }}
@@ -406,7 +386,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-5 text-center text-white" style={{ backgroundColor: colors.primary }}>
+      <section className="py-5 text-center text-green" style={{ backgroundColor: colors.primaryLight }}>
         <Container className="py-5">
           <div className="mx-auto" style={{ maxWidth: "48rem" }}>
             <h2 className="display-5 fw-bold mb-3">Ready to Start Your Learning Journey?</h2>

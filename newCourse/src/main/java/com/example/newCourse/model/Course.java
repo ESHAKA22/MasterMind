@@ -14,12 +14,13 @@ public class Course {
     private String id;
     private String title;
     private String description;
-    private String category; // This could be repurposed or used alongside tags
+    private String category;
     private String level;
-    private String imagePath; // Store the path to the uploaded image
-    private String duration;  // New field for course duration
-    private String language;  // New field for course language
-    private List<String> tags = new ArrayList<>(); // New field for course tags
+    private String imagePath;
+    private String duration;
+    private String language;
+    private List<String> tags = new ArrayList<>();
     private List<StudentProgress> progressList;
+    // Add the actual field instead of just methods
     private List<CourseContent> contentList = new ArrayList<>();
 }

@@ -43,16 +43,33 @@ export const createCourse = async (courseData) => {
 
 export const updateCourse = async (id, updatedCourse) => {
   try {
-    // Make sure we're sending the required fields with fallbacks
-    const courseToUpdate = {
-      title: updatedCourse.title || '',
-      description: updatedCourse.description || '',
-      ...updatedCourse
-    };
-    
-    const response = await axios.put(`${API_URL}/${id}`, courseToUpdate);
-    return response.data;
+    // Check if updatedCourse is a FormData object
+    if (updatedCourse instanceof FormData) {
+      // For FormData, we need to use the appropriate content-type header
+      const response = await axios.put(`${API_URL}/${id}`, updatedCourse, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      // For JSON objects, use the existing approach
+      const courseToUpdate = {
+        title: updatedCourse.title || '',
+        description: updatedCourse.description || '',
+        duration: updatedCourse.duration || '',
+        language: updatedCourse.language || '',
+        level: updatedCourse.level || '',
+        category: updatedCourse.category || '',
+        tags: updatedCourse.tags || [],
+        ...updatedCourse
+      };
+      
+      const response = await axios.put(`${API_URL}/${id}`, courseToUpdate);
+      return response.data;
+    }
   } catch (error) {
+    console.error('API Error:', error);
     throw new Error('Failed to update course');
   }
 };
@@ -77,7 +94,13 @@ export const getCourseContent = async (courseId) => {
 
 export const addContentToCourse = async (courseId, content) => {
   try {
-    const response = await axios.post(`${API_URL}/${courseId}/content`, content);
+    // Set the courseId in the content
+    const lessonWithCourseId = {
+      ...content,
+      courseId: courseId
+    };
+    
+    const response = await axios.post(`${API_URL}/${courseId}/content`, lessonWithCourseId);
     return response.data;
   } catch (error) {
     throw new Error('Failed to add course content');
@@ -86,7 +109,8 @@ export const addContentToCourse = async (courseId, content) => {
 
 export const updateCourseContent = async (courseId, contentId, updatedContent) => {
   try {
-    const response = await axios.put(`${API_URL}/${courseId}/content/${contentId}`, updatedContent);
+    // Now using the lessons API directly
+    const response = await axios.put(`http://localhost:9090/api/lessons/${contentId}`, updatedContent);
     return response.data;
   } catch (error) {
     throw new Error('Failed to update course content');
@@ -95,7 +119,8 @@ export const updateCourseContent = async (courseId, contentId, updatedContent) =
 
 export const deleteCourseContent = async (courseId, contentId) => {
   try {
-    await axios.delete(`${API_URL}/${courseId}/content/${contentId}`);
+    // Now using the lessons API directly
+    await axios.delete(`http://localhost:9090/api/lessons/${contentId}`);
   } catch (error) {
     throw new Error('Failed to delete course content');
   }
@@ -109,5 +134,74 @@ export const generateCourseContent = async (courseId) => {
     return response.data;
   } catch (error) {
     throw new Error('Failed to generate course content');
+  }
+};
+
+// Update these functions to use the new API
+export const getLessonById = async (lessonId) => {
+  try {
+    const response = await axios.get(`http://localhost:9090/api/lessons/${lessonId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch lesson data');
+  }
+};
+
+export const updateLesson = async (lessonId, updatedLesson) => {
+  try {
+    const response = await axios.put(`http://localhost:9090/api/lessons/${lessonId}`, updatedLesson);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to update lesson');
+  }
+};
+
+export const markLessonComplete = async (lessonId) => {
+  try {
+    const response = await axios.post(`http://localhost:9090/api/lessons/${lessonId}/mark-complete`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to mark lesson as complete');
+  }
+};
+
+export const markLessonIncomplete = async (lessonId) => {
+  try {
+    const response = await axios.post(`http://localhost:9090/api/lessons/${lessonId}/mark-incomplete`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to mark lesson as incomplete');
+  }
+};
+
+export const uploadLessonVideo = async (lessonId, videoFile) => {
+  try {
+    const formData = new FormData();
+    formData.append('video', videoFile);
+    
+    const response = await axios.post(`http://localhost:9090/api/lessons/${lessonId}/video`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to upload video');
+  }
+};
+
+export const uploadLessonResource = async (lessonId, resourceFile) => {
+  try {
+    const formData = new FormData();
+    formData.append('resource', resourceFile);
+    
+    const response = await axios.post(`http://localhost:9090/api/lessons/${lessonId}/resource`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to upload resource');
   }
 };

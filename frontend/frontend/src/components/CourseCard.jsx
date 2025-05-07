@@ -22,7 +22,7 @@ function CourseCard({ course, showInstructorOptions, onDelete }) {
         variant="top" 
         src={getCourseImage(category)}
         style={{ 
-          height: '180px', 
+          height: '370px', 
           objectFit: 'cover',
           backgroundColor: '#f8f9fa',
         }}

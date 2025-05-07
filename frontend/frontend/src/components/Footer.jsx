@@ -4,6 +4,16 @@ import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 export default function Footer() {
   const [email, setEmail] = useState("");
 
+  // Green color scheme
+  const colors = {
+    primary: '#198754',    // Dark Green
+    light: '#d1e7dd',      // Light Green
+    dark: '#1b5e20',       // Deep Green
+    white: '#ffffff',
+    lightGray: '#f8f9fa',
+    darkGray: '#212529'
+  };
+
   const handleSubscribe = (e) => {
     e.preventDefault();
     // Handle subscription logic here
@@ -12,7 +22,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-gradient text-white" style={{background: 'linear-gradient(90deg, #172b4d 0%, #1a365d 100%)'}}>
+    <footer style={{background: colors.dark}}>
       {/* Main Footer Content */}
       <Container className="py-5">
         <Row className="gy-4">
@@ -20,7 +30,7 @@ export default function Footer() {
           <Col lg={3} md={6}>
             <div className="mb-4 d-flex align-items-center">
               <h2 className="fs-3 fw-bold text-white m-0">MasterMind</h2>
-              <span className="text-info ms-1 fs-5">™</span>
+              <span className="text-light ms-1 fs-5">™</span>
             </div>
             <p className="text-light mb-4">
               Empowering developers with cutting-edge resources and community
@@ -30,6 +40,7 @@ export default function Footer() {
               <a
                 href="#"
                 className="text-light-blue link-light link-opacity-75 link-opacity-100-hover"
+                style={{color: colors.light}}
               >
                 <svg
                   width="24"
@@ -48,6 +59,7 @@ export default function Footer() {
               <a
                 href="#"
                 className="text-light-blue link-light link-opacity-75 link-opacity-100-hover"
+                style={{color: colors.light}}
               >
                 <svg
                   width="24"
@@ -62,6 +74,7 @@ export default function Footer() {
               <a
                 href="#"
                 className="text-light-blue link-light link-opacity-75 link-opacity-100-hover"
+                style={{color: colors.light}}
               >
                 <svg
                   width="24"
@@ -80,6 +93,7 @@ export default function Footer() {
               <a
                 href="#"
                 className="text-light-blue link-light link-opacity-75 link-opacity-100-hover"
+                style={{color: colors.light}}
               >
                 <svg
                   width="24"
@@ -103,27 +117,27 @@ export default function Footer() {
             <h3 className="fw-semibold text-white fs-5 mb-4">Resources</h3>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Documentation
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Tutorials
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Code Challenges
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Community Forum
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   API Reference
                 </a>
               </li>
@@ -135,27 +149,27 @@ export default function Footer() {
             <h3 className="fw-semibold text-white fs-5 mb-4">Company</h3>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   About Us
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Careers
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Blog
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Press
                 </a>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-light text-decoration-none opacity-75 hover-opacity-100">
+                <a href="#" className="text-decoration-none opacity-75 hover-opacity-100" style={{color: colors.light}}>
                   Contact Us
                 </a>
               </li>
@@ -167,7 +181,7 @@ export default function Footer() {
             <h3 className="fw-semibold text-white fs-5 mb-4">
               Stay Updated
             </h3>
-            <p className="text-light mb-4">
+            <p style={{color: colors.light}} className="mb-4">
               Subscribe to our newsletter for the latest updates and resources.
             </p>
             <Form onSubmit={handleSubscribe}>
@@ -182,8 +196,11 @@ export default function Footer() {
                 />
                 <Button 
                   type="submit"
-                  variant="primary"
                   className="rounded-3 fw-medium"
+                  style={{
+                    backgroundColor: colors.primary, 
+                    borderColor: colors.primary
+                  }}
                 >
                   Subscribe
                 </Button>
@@ -194,24 +211,24 @@ export default function Footer() {
       </Container>
 
       {/* Bottom Bar */}
-      <div className="border-top border-secondary">
+      <div style={{borderColor: colors.primary, borderTop: `1px solid ${colors.light}`}}>
         <Container className="py-4">
           <Row className="align-items-center">
             <Col md={6} className="text-center text-md-start mb-3 mb-md-0">
               <div className="d-flex flex-wrap justify-content-center justify-content-md-start gap-3">
-                <a href="#" className="text-secondary text-decoration-none small">
+                <a href="#" className="text-decoration-none small" style={{color: colors.light}}>
                   Privacy Policy
                 </a>
-                <a href="#" className="text-secondary text-decoration-none small">
+                <a href="#" className="text-decoration-none small" style={{color: colors.light}}>
                   Terms of Service
                 </a>
-                <a href="#" className="text-secondary text-decoration-none small">
+                <a href="#" className="text-decoration-none small" style={{color: colors.light}}>
                   Cookie Policy
                 </a>
               </div>
             </Col>
             <Col md={6} className="text-center text-md-end">
-              <p className="text-secondary m-0 small">
+              <p style={{color: colors.light}} className="m-0 small">
                 &copy; {new Date().getFullYear()} MasterMind. All rights
                 reserved.
               </p>
@@ -219,6 +236,13 @@ export default function Footer() {
           </Row>
         </Container>
       </div>
+      
+      <style jsx>{`
+        .hover-opacity-100:hover {
+          opacity: 1 !important;
+          color: ${colors.lightGray} !important;
+        }
+      `}</style>
     </footer>
   );
 }

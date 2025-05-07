@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Card, Badge, Row, Col, ListGroup, Alert, Button, ProgressBar } from 'react-bootstrap';
-import { getCourseById, getCourseContent, generateCourseContent } from '../api';
+import { Container, Card, Badge, Row, Col, ListGroup, Alert, Button, ProgressBar, Nav } from 'react-bootstrap';
+import { getCourseById, getCourseContent, generateCourseContent, markLessonComplete, markLessonIncomplete } from '../api';
 import { BsClock, BsGlobe, BsPeople, BsLaptop, BsFileEarmarkText, BsPlayCircle, 
-         BsQuestionCircle, BsFilePdf, BsLockFill, BsUnlockFill, BsDownload } from 'react-icons/bs';
+         BsQuestionCircle, BsFilePdf, BsLockFill, BsUnlockFill, BsDownload, BsCheckCircle, BsListUl } from 'react-icons/bs';
+import LessonCard from '../components/LessonCard'; // Import the LessonCard component
 
 function CourseView() {
   const { id } = useParams();
@@ -14,6 +15,18 @@ function CourseView() {
   const [enrolled, setEnrolled] = useState(false);
   const [studentCount, setStudentCount] = useState(0);
   const [activeLesson, setActiveLesson] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState([]);
+  
+  // Add ref for the lessons section
+  const lessonsSectionRef = useRef(null);
+
+  // Function to scroll to lessons section
+  const scrollToLessons = () => {
+    lessonsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  
 
   useEffect(() => {
     const fetchCourseAndContent = async () => {
@@ -40,6 +53,13 @@ function CourseView() {
         if (contentData && contentData.length > 0) {
           setActiveLesson(contentData[0]);
         }
+
+        // Calculate progress
+        if (contentData && contentData.length > 0) {
+          const completed = contentData.filter(lesson => lesson.completed);
+          setCompletedLessons(completed);
+          setProgress(Math.round((completed.length / contentData.length) * 100));
+        }
         
         setError(null);
       } catch (err) {
@@ -56,6 +76,8 @@ function CourseView() {
   const handleEnroll = async () => {
     try {
       setLoading(true);
+      
+      // In a real app, you would make an API call to enroll the user
       await generateCourseContent(id);
       
       // Refresh content after generating
@@ -83,6 +105,39 @@ function CourseView() {
     }
   };
 
+  // Handler for marking lessons as complete/incomplete
+  const handleLessonCompletion = async (lessonId, isComplete) => {
+    try {
+      if (isComplete) {
+        await markLessonComplete(lessonId);
+        
+        // Update local state
+        setCompletedLessons([...completedLessons, lessonId]);
+        setCourseContent(courseContent.map(lesson => 
+          lesson.id === lessonId ? {...lesson, completed: true} : lesson
+        ));
+      } else {
+        await markLessonIncomplete(lessonId);
+        
+        // Update local state
+        setCompletedLessons(completedLessons.filter(id => id !== lessonId));
+        setCourseContent(courseContent.map(lesson => 
+          lesson.id === lessonId ? {...lesson, completed: false} : lesson
+        ));
+      }
+      
+      // Recalculate progress
+      const updatedCompleted = courseContent.filter(lesson => 
+        lesson.id === lessonId ? isComplete : lesson.completed
+      );
+      setProgress(Math.round((updatedCompleted.length / courseContent.length) * 100));
+      
+    } catch (err) {
+      console.error('Error updating lesson completion status:', err);
+      setError('Failed to update lesson completion status.');
+    }
+  };
+
   // Helper to determine if lesson should be previewable
   const isPreviewable = (index, lesson) => {
     if (enrolled) return true;
@@ -90,32 +145,40 @@ function CourseView() {
     return index < 2 || lesson.previewEnabled;
   };
 
-  // Helper to render the appropriate icon for the lesson type
-  const getLessonIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'video':
-        return <BsPlayCircle className="me-2 text-primary" />;
-      case 'quiz':
-        return <BsQuestionCircle className="me-2 text-warning" />;
-      case 'pdf':
-        return <BsFilePdf className="me-2 text-danger" />;
-      default:
-        return <BsFileEarmarkText className="me-2 text-info" />;
+  // Navigate to next lesson
+  const goToNextLesson = () => {
+    if (!activeLesson || !courseContent.length) return;
+    
+    const currentIndex = courseContent.findIndex(lesson => lesson.id === activeLesson.id);
+    if (currentIndex < courseContent.length - 1) {
+      setActiveLesson(courseContent[currentIndex + 1]);
     }
   };
 
-  // Professional color scheme
+  // Navigate to previous lesson
+  const goToPrevLesson = () => {
+    if (!activeLesson || !courseContent.length) return;
+    
+    const currentIndex = courseContent.findIndex(lesson => lesson.id === activeLesson.id);
+    if (currentIndex > 0) {
+      setActiveLesson(courseContent[currentIndex - 1]);
+    }
+  };
+
+  // Green color scheme
   const colors = {
-    mediumBlue: '#0000cd',
-    darkBlue: '#00008b',
-    royalBlue: '#4169e1',
-    dodgerBlue: '#1e90ff',
+    primary: '#198754',    // Dark Green
+    light: '#d1e7dd',      // Light Green
+    dark: '#1b5e20',       // Deep Green
+    white: '#ffffff',
+    lightGray: '#f8f9fa',
+    darkGray: '#212529',
   };
 
   if (loading && !course) {
     return (
       <Container className="py-5 text-center">
-        <div className="spinner-border text-primary" role="status">
+        <div className="spinner-border" style={{ color: colors.primary }} role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
         <p className="mt-3">Loading course content...</p>
@@ -140,322 +203,436 @@ function CourseView() {
   }
 
   return (
-    <Container className="py-5">
-      {/* Course Banner/Header Section */}
-      <Card className="border-0 overflow-hidden shadow-sm mb-5">
-        <div 
-          className="bg-gradient text-white p-5 d-flex flex-column justify-content-end"
-          style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 139, 0.8), rgba(65, 105, 225, 0.7)), url(${course.imagePath || 'https://via.placeholder.com/1200x400'})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            height: '300px'
-          }}
-        >
-          <div className="position-relative z-1">
-            <h1 className="display-4 fw-bold mb-3">{course.title}</h1>
-            <div className="d-flex flex-wrap gap-3 mb-4">
+    <div style={{ backgroundColor: colors.lightGray }}>
+      <Container className="py-5">
+        {/* Course Banner/Header Section */}
+        <Card className="border-0 overflow-hidden shadow-lg mb-5 rounded-4">
+          <div 
+            className="text-white p-5 d-flex flex-column justify-content-end"
+            style={{
+              backgroundImage: `linear-gradient(rgba(27, 94, 32, 0.85), rgba(25, 135, 84, 0.7)), url(${course.imagePath || 'https://via.placeholder.com/1200x400'})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              height: '320px',
+              borderRadius: '1rem 1rem 0 0'
+            }}
+          >
+            <div className="position-relative z-1">
+              <h1 className="display-4 fw-bold mb-3">{course.title}</h1>
+              <div className="d-flex flex-wrap gap-3 mb-4">
+                <Badge 
+                  bg="light" 
+                  text="dark"
+                  className="fw-medium py-2 px-3 rounded-pill"
+                >
+                  <BsLaptop className="me-1" /> {course.category || 'General'}
+                </Badge>
+                <Badge 
+                  bg="light" 
+                  text="dark"
+                  className="fw-medium py-2 px-3 rounded-pill"
+                >
+                  <BsClock className="me-1" /> {course.duration || 'Self-paced'}
+                </Badge>
+                <Badge 
+                  bg="light" 
+                  text="dark"
+                  className="fw-medium py-2 px-3 rounded-pill"
+                >
+                  <BsGlobe className="me-1" /> {course.language || 'English'}
+                </Badge>
+                <Badge 
+                  bg="light" 
+                  text="dark"
+                  className="fw-medium py-2 px-3 rounded-pill"
+                >
+                  <BsPeople className="me-1" /> {studentCount}+ students enrolled
+                </Badge>
+              </div>
+              
+              {/* Skill Level Badge */}
               <Badge 
-                bg="light" 
-                text="dark"
-                className="fw-medium py-2 px-3"
+                className="fw-medium py-2 px-3 rounded-pill mb-4"
+                style={{
+                  backgroundColor: 
+                    course.level === 'Beginner' ? colors.primary :
+                    course.level === 'Intermediate' ? '#fd7e14' : '#dc3545'
+                }}
               >
-                <BsLaptop className="me-1" /> {course.category || 'General'}
-              </Badge>
-              <Badge 
-                bg="light" 
-                text="dark"
-                className="fw-medium py-2 px-3"
-              >
-                <BsClock className="me-1" /> {course.duration || 'Self-paced'}
-              </Badge>
-              <Badge 
-                bg="light" 
-                text="dark"
-                className="fw-medium py-2 px-3"
-              >
-                <BsGlobe className="me-1" /> {course.language || 'English'}
-              </Badge>
-              <Badge 
-                bg="light" 
-                text="dark"
-                className="fw-medium py-2 px-3"
-              >
-                <BsPeople className="me-1" /> {studentCount}+ students enrolled
+                {course.level || 'All Levels'}
               </Badge>
             </div>
-            
-            {/* Skill Level Badge */}
-            <Badge 
-              bg="primary" 
-              className="fw-medium py-2 px-3 mb-4"
-              style={{
-                backgroundColor: 
-                  course.level === 'Beginner' ? '#28a745' :
-                  course.level === 'Intermediate' ? '#fd7e14' : '#dc3545'
-              }}
-            >
-              {course.level || 'All Levels'}
-            </Badge>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <Row className="mb-5">
-        {/* Course Overview Section - Left Column */}
-        <Col lg={8}>
-          {/* Course Description */}
-          <Card className="border-0 shadow-sm mb-4">
-            <Card.Header 
-              className="bg-white border-bottom-0 pt-4 pb-0 px-4"
-              style={{ borderLeft: `5px solid ${colors.royalBlue}` }}
+        {/* Add Navigation Bar */}
+        <Nav className="mb-4 border-0 bg-white rounded-4 shadow-sm p-2">
+          <Nav.Item>
+            <Button 
+              variant="link" 
+              className="text-decoration-none px-4 py-2 text-dark fw-medium"
+              onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
+              style={{ color: colors.dark }}
             >
-              <h2 style={{ color: colors.darkBlue }}>Course Overview</h2>
-            </Card.Header>
-            <Card.Body className="p-4">
-              <div className="mb-4">
-                <p className="lead">{course.description}</p>
-              </div>
+              Overview
+            </Button>
+          </Nav.Item>
+          <Nav.Item>
+            <Button 
+              variant="link" 
+              className="text-decoration-none px-4 py-2 text-dark fw-medium"
+              onClick={scrollToLessons}
+              style={{ color: colors.dark }}
+            >
+              <BsListUl className="me-2" /> Lessons
+            </Button>
+          </Nav.Item>
+        </Nav>
 
-              {/* Tags Section */}
-              {course.tags && course.tags.length > 0 && (
-                <div className="mb-4">
-                  <h5>Topics Covered:</h5>
-                  <div className="d-flex flex-wrap gap-2 mt-2">
-                    {course.tags.map(tag => (
-                      <Badge 
-                        key={tag} 
-                        bg="light" 
-                        text="dark"
-                        className="rounded-pill px-3 py-2"
-                      >
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Additional Course Info */}
-              <div className="d-flex flex-wrap gap-4">
-                <div>
-                  <h5 className="mb-2">Duration</h5>
-                  <p className="text-muted d-flex align-items-center">
-                    <BsClock className="me-2" /> {course.duration || 'Self-paced'}
-                  </p>
-                </div>
-                <div>
-                  <h5 className="mb-2">Language</h5>
-                  <p className="text-muted d-flex align-items-center">
-                    <BsGlobe className="me-2" /> {course.language || 'English'}
-                  </p>
-                </div>
-                <div>
-                  <h5 className="mb-2">Skill Level</h5>
-                  <p className="text-muted">{course.level || 'All Levels'}</p>
-                </div>
-                <div>
-                  <h5 className="mb-2">Students</h5>
-                  <p className="text-muted d-flex align-items-center">
-                    <BsPeople className="me-2" /> {studentCount}+ enrolled
-                  </p>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-
-          {/* Active Lesson Content */}
-          {activeLesson && (
-            <Card className="border-0 shadow-sm mb-4">
+        <Row className="mb-5 g-4">
+          {/* Course Overview Section - Left Column */}
+          <Col lg={8}>
+            {/* Course Description */}
+            <Card className="border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
               <Card.Header 
-                className="bg-white border-bottom-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center"
-                style={{ borderLeft: `5px solid ${colors.dodgerBlue}` }}
+                className="border-bottom-0 pt-4 pb-0 px-4"
+                style={{ 
+                  backgroundColor: colors.light,
+                  borderLeft: `0px solid ${colors.primary}` 
+                }}
               >
-                <div>
-                  <h3 style={{ color: colors.darkBlue }}>{activeLesson.title}</h3>
-                  <div className="d-flex align-items-center text-muted mt-1">
-                    {getLessonIcon(activeLesson.contentType)}
-                    <span>{activeLesson.contentType} • {activeLesson.duration || '10 minutes'}</span>
-                  </div>
-                </div>
-                {activeLesson.resourceUrl && (
-                  <Button 
-                    variant="outline-primary" 
-                    size="sm" 
-                    className="d-flex align-items-center"
-                  >
-                    <BsDownload className="me-2" />
-                    Resources
-                  </Button>
-                )}
+                <h2 style={{ color: colors.dark }} className="fw-bold">Course Overview</h2>
               </Card.Header>
               <Card.Body className="p-4">
-                {enrolled || isPreviewable(0, activeLesson) ? (
-                  <div className="mb-3">
-                    {activeLesson.contentType?.toLowerCase() === 'video' && activeLesson.videoUrl ? (
-                      <div className="ratio ratio-16x9 mb-4">
-                        <iframe 
-                          src={activeLesson.videoUrl} 
-                          title={activeLesson.title} 
-                          allowFullScreen
-                          className="rounded-3"
-                        ></iframe>
-                      </div>
-                    ) : (
-                      <div 
-                        className="p-3 rounded-3 border" 
-                        style={{ backgroundColor: '#f8f9fa' }}
-                        dangerouslySetInnerHTML={{ __html: activeLesson.content }}
+                <div className="mb-4">
+                  <p className="lead">{course.description}</p>
+                </div>
+
+                {/* Tags Section */}
+                {course.tags && course.tags.length > 0 && (
+                  <div className="mb-4">
+                    <h5 className="fw-bold" style={{ color: colors.dark }}>Topics Covered:</h5>
+                    <div className="d-flex flex-wrap gap-2 mt-2">
+                      {course.tags.map(tag => (
+                        <Badge 
+                          key={tag} 
+                          bg="light" 
+                          text="dark"
+                          className="rounded-pill px-3 py-2"
+                          style={{ backgroundColor: colors.light, color: colors.primary }}
+                        >
+                          #{tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Course Info */}
+                <div className="d-flex flex-wrap gap-4">
+                  <div>
+                    <h5 className="mb-2 fw-bold" style={{ color: colors.dark }}>Duration</h5>
+                    <p className="text-muted d-flex align-items-center">
+                      <BsClock className="me-2" style={{ color: colors.primary }} /> {course.duration || 'Self-paced'}
+                    </p>
+                  </div>
+                  <div>
+                    <h5 className="mb-2 fw-bold" style={{ color: colors.dark }}>Language</h5>
+                    <p className="text-muted d-flex align-items-center">
+                      <BsGlobe className="me-2" style={{ color: colors.primary }} /> {course.language || 'English'}
+                    </p>
+                  </div>
+                  <div>
+                    <h5 className="mb-2 fw-bold" style={{ color: colors.dark }}>Skill Level</h5>
+                    <p className="text-muted">{course.level || 'All Levels'}</p>
+                  </div>
+                  <div>
+                    <h5 className="mb-2 fw-bold" style={{ color: colors.dark }}>Students</h5>
+                    <p className="text-muted d-flex align-items-center">
+                      <BsPeople className="me-2" style={{ color: colors.primary }} /> {studentCount}+ enrolled
+                    </p>
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+
+            {/* Active Lesson Content */}
+            {activeLesson && (
+              <Card className="border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+                <Card.Header 
+                  className="border-bottom-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center"
+                  style={{ backgroundColor: colors.light }}
+                >
+                  <div>
+                    <h3 style={{ color: colors.dark }} className="fw-bold">{activeLesson.title}</h3>
+                    <div className="d-flex align-items-center text-muted mt-1">
+                      {activeLesson.lessonType && (
+                        <>
+                          <span>{activeLesson.lessonType}</span>
+                          {activeLesson.duration && <span> • {activeLesson.duration}</span>}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {activeLesson.resourceUrl && (
+                    <Button 
+                      variant="outline-success" 
+                      size="sm" 
+                      className="d-flex align-items-center"
+                      href={activeLesson.resourceUrl}
+                      target="_blank"
+                      style={{ 
+                        borderColor: colors.primary, 
+                        color: colors.primary 
+                      }}
+                    >
+                      <BsDownload className="me-2" />
+                      Resources
+                    </Button>
+                  )}
+                </Card.Header>
+                <Card.Body className="p-4">
+                  {enrolled || isPreviewable(0, activeLesson) ? (
+                    <div className="mb-3">
+                      {activeLesson.lessonType === 'Video' && activeLesson.videoUrl ? (
+                        <div className="ratio ratio-16x9 mb-4">
+                          <iframe 
+                            src={activeLesson.videoUrl} 
+                            title={activeLesson.title} 
+                            allowFullScreen
+                            className="rounded-4"
+                          ></iframe>
+                        </div>
+                      ) : activeLesson.lessonType === 'Quiz' && activeLesson.quizLink ? (
+                        <div 
+                          className="p-4 rounded-4 border" 
+                          style={{ backgroundColor: colors.white }}
+                          dangerouslySetInnerHTML={{ __html: activeLesson.quizLink }}
+                        />
+                      ) : (
+                        <div 
+                          className="p-4 rounded-4 border" 
+                          style={{ backgroundColor: colors.white }}
+                          dangerouslySetInnerHTML={{ __html: activeLesson.content }}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-5 border rounded-4" style={{ backgroundColor: colors.white }}>
+                      <BsLockFill size={32} style={{ color: colors.primary }} className="mb-3" />
+                      <h4 className="fw-bold">This lesson is locked</h4>
+                      <p className="text-muted mb-4">Enroll in this course to unlock all content</p>
+                      <Button 
+                        className="px-4 py-2 rounded-pill"
+                        onClick={handleEnroll}
+                        style={{
+                          backgroundColor: colors.primary,
+                          borderColor: colors.primary
+                        }}
+                      >
+                        Enroll Now
+                      </Button>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            )}
+          </Col>
+
+          {/* Course Syllabus Section - Right Column */}
+          <Col lg={4}>
+            {/* Enroll/Progress Card */}
+            <Card className="border-0 shadow-sm mb-4 rounded-4 position-sticky" style={{ top: '20px' }}>
+              <Card.Body className="p-4">
+                {enrolled ? (
+                  <div>
+                    <h3 className="mb-3 fw-bold" style={{ color: colors.dark }}>Course Progress</h3>
+                    <div className="mb-3">
+                      <ProgressBar 
+                        now={progress}
+                        label={`${progress}%`}
+                        style={{ height: '10px', backgroundColor: '#e9ecef' }}
+                        className="mb-2 rounded-pill"
+                        variant="success"
                       />
+                      <p className="text-muted small text-center mt-2">
+                        {completedLessons.length} of {courseContent.length} lessons completed
+                      </p>
+                    </div>
+                    {activeLesson && (
+                      <>
+                        <Button 
+                          className="w-100 mb-3 py-2 rounded-pill"
+                          onClick={() => handleLessonCompletion(activeLesson.id, !activeLesson.completed)}
+                          style={{
+                            backgroundColor: activeLesson.completed ? colors.dark : colors.primary,
+                            borderColor: activeLesson.completed ? colors.dark : colors.primary
+                          }}
+                        >
+                          {activeLesson.completed ? (
+                            <>
+                              <BsCheckCircle className="me-2" /> Completed
+                            </>
+                          ) : (
+                            'Mark as Complete'
+                          )}
+                        </Button>
+                        <div className="d-flex justify-content-between">
+                          <Button 
+                            variant="outline-secondary" 
+                            size="sm"
+                            className="rounded-pill px-3"
+                            onClick={goToPrevLesson}
+                            disabled={courseContent.findIndex(lesson => lesson.id === activeLesson.id) === 0}
+                          >
+                            Previous Lesson
+                          </Button>
+                          <Button 
+                            variant="outline-success" 
+                            size="sm"
+                            className="rounded-pill px-3"
+                            onClick={goToNextLesson}
+                            disabled={courseContent.findIndex(lesson => lesson.id === activeLesson.id) === courseContent.length - 1}
+                            style={{ 
+                              borderColor: colors.primary, 
+                              color: colors.primary 
+                            }}
+                          >
+                            Next Lesson
+                          </Button>
+                        </div>
+                      </>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-5 border rounded-3">
-                    <BsLockFill size={24} className="text-secondary mb-3" />
-                    <h4>This lesson is locked</h4>
-                    <p className="text-muted mb-4">Enroll in this course to unlock all content</p>
+                  <div className="text-center">
+                    <h3 className="mb-3 fw-bold" style={{ color: colors.dark }}>Enroll in this Course</h3>
+                    <p className="mb-4">Gain access to all course materials and resources</p>
                     <Button 
-                      variant="primary"
+                      className="w-100 mb-3 py-3 rounded-pill"
+                      size="lg"
                       onClick={handleEnroll}
+                      disabled={loading}
                       style={{
-                        backgroundColor: colors.royalBlue,
-                        borderColor: colors.royalBlue
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                        fontWeight: '600'
                       }}
                     >
-                      Enroll Now
+                      {loading ? 'Processing...' : 'Enroll Now - Free'}
                     </Button>
+                    <p className="text-muted small mt-2">
+                      Preview available for the first two lessons
+                    </p>
                   </div>
                 )}
               </Card.Body>
             </Card>
-          )}
-        </Col>
 
-        {/* Course Syllabus Section - Right Column */}
-        <Col lg={4}>
-          {/* Enroll/Progress Card */}
-          <Card className="border-0 shadow-sm mb-4 position-sticky" style={{ top: '20px' }}>
-            <Card.Body className="p-4">
-              {enrolled ? (
-                <div>
-                  <h3 className="mb-3">Course Progress</h3>
-                  <div className="mb-3">
-                    <ProgressBar 
-                      now={10} // This would be calculated based on completed lessons
-                      label={`10%`}
-                      variant="primary"
-                      style={{ height: '8px' }}
-                      className="mb-2"
-                    />
-                    <p className="text-muted small text-center">1 of {courseContent.length} lessons completed</p>
-                  </div>
-                  <Button 
-                    variant="primary" 
-                    className="w-100"
-                    style={{
-                      backgroundColor: colors.royalBlue,
-                      borderColor: colors.royalBlue
-                    }}
-                  >
-                    Continue Learning
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <h3 className="mb-3">Enroll in this Course</h3>
-                  <p className="mb-4">Gain access to all course materials and resources</p>
-                  <Button 
-                    variant="primary" 
-                    className="w-100 mb-3"
-                    size="lg"
-                    onClick={handleEnroll}
-                    disabled={loading}
-                    style={{
-                      backgroundColor: colors.royalBlue,
-                      borderColor: colors.royalBlue,
-                      padding: '12px',
-                      fontWeight: '600'
-                    }}
-                  >
-                    {loading ? 'Processing...' : 'Enroll Now - Free'}
-                  </Button>
-                  <p className="text-muted small mt-2">
-                    Preview available for the first two lessons
-                  </p>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Course Syllabus */}
-          <Card className="border-0 shadow-sm">
-            <Card.Header 
-              className="bg-white border-bottom-0 pt-4 pb-0 px-4"
-              style={{ borderLeft: `5px solid ${colors.royalBlue}` }}
-            >
-              <h2 style={{ color: colors.darkBlue }}>Course Contents</h2>
-              <p className="text-muted">{courseContent.length} lessons • {course.duration || 'Self-paced'}</p>
-            </Card.Header>
-            <Card.Body className="p-0">
-              <ListGroup variant="flush">
+            {/* Course Syllabus */}
+            <Card className="border-0 shadow-sm rounded-4" ref={lessonsSectionRef}>
+              <Card.Header 
+                className="border-bottom-0 pt-4 pb-0 px-4"
+                style={{ backgroundColor: colors.light }}
+              >
+                <h2 className="fw-bold" style={{ color: colors.dark }}>Course Contents</h2>
+                <p className="text-muted">{courseContent.length} lessons • {course.duration || 'Self-paced'}</p>
+              </Card.Header>
+              <Card.Body className="p-4">
+                {/* Use the LessonCard component to display lessons */}
                 {courseContent && courseContent.length > 0 ? (
                   courseContent.map((content, index) => (
-                    <ListGroup.Item 
-                      key={content.id} 
-                      action
-                      onClick={() => isPreviewable(index, content) && setActiveLesson(content)}
-                      active={activeLesson && activeLesson.id === content.id}
-                      className="px-4 py-3 d-flex justify-content-between align-items-center"
-                      disabled={!isPreviewable(index, content)}
-                      style={{
-                        cursor: isPreviewable(index, content) ? 'pointer' : 'not-allowed',
-                        backgroundColor: activeLesson && activeLesson.id === content.id ? '#e9ecef' : 'white'
+                    <div 
+                      key={content.id || index}
+                      className={`lesson-card mb-3 p-3 rounded-4 shadow-sm border-0 ${activeLesson && activeLesson.id === content.id ? 'active' : ''}`}
+                      style={{ 
+                        backgroundColor: activeLesson && activeLesson.id === content.id ? colors.light : colors.white,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
                       }}
+                      onClick={() => setActiveLesson(content)}
                     >
-                      <div className="d-flex align-items-center flex-grow-1">
-                        <div className="me-2 fs-5">
-                          {getLessonIcon(content.contentType)}
-                        </div>
-                        <div>
-                          <div className="fw-medium">{content.title}</div>
-                          <div className="small text-muted d-flex align-items-center gap-2">
-                            <span>{content.contentType}</span>
-                            {content.duration && (
-                              <>
-                                <span>•</span>
-                                <span>{content.duration}</span>
-                              </>
-                            )}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center">
+                          {!isPreviewable(index, content) && !enrolled ? (
+                            <BsLockFill className="me-3" style={{ color: colors.primary }} />
+                          ) : content.completed ? (
+                            <BsCheckCircle className="me-3" style={{ color: colors.primary }} />
+                          ) : (
+                            <div className="me-3 rounded-circle d-flex align-items-center justify-content-center" 
+                              style={{ 
+                                width: '24px', 
+                                height: '24px', 
+                                backgroundColor: colors.light,
+                                color: colors.primary,
+                                border: `1px solid ${colors.primary}`
+                              }}>
+                              {index + 1}
+                            </div>
+                          )}
+                          <div>
+                            <h6 className="mb-1 fw-bold" style={{ color: colors.dark }}>{content.title}</h6>
+                            <div className="d-flex align-items-center small text-muted">
+                              {content.lessonType === 'Video' ? (
+                                <><BsPlayCircle className="me-1" /> Video</>
+                              ) : content.lessonType === 'Quiz' ? (
+                                <><BsQuestionCircle className="me-1" /> Quiz</>
+                              ) : content.lessonType === 'PDF' ? (
+                                <><BsFilePdf className="me-1" /> PDF</>
+                              ) : (
+                                <><BsFileEarmarkText className="me-1" /> Reading</>
+                              )}
+                              {content.duration && <span className="ms-2">• {content.duration}</span>}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        {isPreviewable(index, content) ? (
-                          <BsUnlockFill className="text-success" />
+                        {!isPreviewable(index, content) && !enrolled ? (
+                          <BsLockFill style={{ color: '#adb5bd' }} />
                         ) : (
-                          <BsLockFill className="text-secondary" />
+                          <div className="ms-2 d-flex align-items-center">
+                            {content.completed && (
+                              <Badge bg="success" pill>Completed</Badge>
+                            )}
+                          </div>
                         )}
                       </div>
-                    </ListGroup.Item>
+                    </div>
                   ))
                 ) : (
-                  <ListGroup.Item className="text-center py-5">
+                  <div className="text-center py-5">
                     <p className="mb-0">No lessons available yet.</p>
-                  </ListGroup.Item>
+                  </div>
                 )}
-              </ListGroup>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="danger" className="mt-4">
-          {error}
-        </Alert>
-      )}
-    </Container>
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="danger" className="mt-4 rounded-4">
+            {error}
+          </Alert>
+        )}
+        
+        {/* Add some CSS for the lesson card */}
+        <style>{`
+          .lesson-card {
+            transition: all 0.2s ease-in-out;
+          }
+          .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08) !important;
+          }
+          .lesson-card.active {
+            border-left: 4px solid ${colors.primary} !important;
+          }
+          .progress-bar {
+            background-color: ${colors.primary} !important;
+          }
+        `}</style>
+      </Container>
+    </div>
   );
 }
 

@@ -2,10 +2,13 @@ package com.example.newCourse.controller;
 
 import com.example.newCourse.model.Course;
 import com.example.newCourse.model.CourseContent;
+import com.example.newCourse.model.Lesson;
 import com.example.newCourse.repository.CourseRepository;
+import com.example.newCourse.repository.LessonRepository;
 import com.example.newCourse.service.ContentGeneratorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,9 +28,12 @@ import java.util.Optional;
 @RequestMapping("/api/courses")
 @CrossOrigin(origins = "*") 
 public class CourseController {
-
+    
     @Autowired
     private CourseRepository courseRepository;
+    
+    @Autowired
+    private LessonRepository lessonRepository;
 
     @Autowired
     private ContentGeneratorService contentGeneratorService;
@@ -58,95 +64,131 @@ public class CourseController {
         Optional<Course> courseOptional = courseRepository.findById(id);
         if (courseOptional.isPresent()) {
             Course course = courseOptional.get();
-            course.setTitle(updatedCourse.getTitle());
-            course.setDescription(updatedCourse.getDescription());
-            course.setProgressList(updatedCourse.getProgressList());
+            
+            // Update all fields sent from the frontend
+            if (updatedCourse.getTitle() != null) {
+                course.setTitle(updatedCourse.getTitle());
+            }
+            if (updatedCourse.getDescription() != null) {
+                course.setDescription(updatedCourse.getDescription());
+            }
+            if (updatedCourse.getDuration() != null) {
+                course.setDuration(updatedCourse.getDuration());
+            }
+            if (updatedCourse.getLanguage() != null) {
+                course.setLanguage(updatedCourse.getLanguage());
+            }
+            if (updatedCourse.getLevel() != null) {
+                course.setLevel(updatedCourse.getLevel());
+            }
+            if (updatedCourse.getCategory() != null) {
+                course.setCategory(updatedCourse.getCategory());
+            }
+            if (updatedCourse.getTags() != null) {
+                course.setTags(updatedCourse.getTags());
+            }
+            
             return ResponseEntity.ok(courseRepository.save(course));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
+    // Add a multipart form handling endpoint
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Course> updateCourseWithImage(
+            @PathVariable String id,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam(value = "duration", required = false) String duration,
+            @RequestParam(value = "language", required = false) String language,
+            @RequestParam(value = "level", required = false) String level,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "tags", required = false) String tagsJson,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
+        
+        try {
+            Optional<Course> courseOptional = courseRepository.findById(id);
+            if (!courseOptional.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            
+            Course course = courseOptional.get();
+            course.setTitle(title);
+            course.setDescription(description);
+            if (duration != null) course.setDuration(duration);
+            if (language != null) course.setLanguage(language);
+            if (level != null) course.setLevel(level);
+            if (category != null) course.setCategory(category);
+            
+            // Parse tags from JSON
+            if (tagsJson != null && !tagsJson.isEmpty()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                List<String> tags = objectMapper.readValue(tagsJson, List.class);
+                course.setTags(tags);
+            }
+            
+            // Handle image upload if provided
+            if (image != null && !image.isEmpty()) {
+                String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+                String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
+                
+                Path uploadDir = Paths.get("uploads");
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
+                }
+                
+                Path filePath = uploadDir.resolve(uniqueFileName);
+                Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                
+                course.setImagePath("/uploads/" + uniqueFileName);
+            }
+            
+            Course savedCourse = courseRepository.save(course);
+            return ResponseEntity.ok(savedCourse);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCourse(@PathVariable String id) {
         if (courseRepository.existsById(id)) {
+            // Delete associated lessons first
+            lessonRepository.deleteByCourseId(id);
+            
+            // Then delete the course
             courseRepository.deleteById(id);
-            return ResponseEntity.ok("Course deleted successfully");
+            return ResponseEntity.ok("Course and its lessons deleted successfully");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
         }
     }
-
+    
     @GetMapping("/{courseId}/content")
-    public ResponseEntity<List<CourseContent>> getCourseContent(@PathVariable String courseId) {
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isPresent()) {
-            return ResponseEntity.ok(courseOptional.get().getContentList());
-        } else {
+    public ResponseEntity<List<Lesson>> getCourseContent(@PathVariable String courseId) {
+        if (!courseRepository.existsById(courseId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        
+        List<Lesson> lessons = lessonRepository.findByCourseIdOrderByOrder(courseId);
+        return ResponseEntity.ok(lessons);
     }
 
     @PostMapping("/{courseId}/content")
-    public ResponseEntity<CourseContent> addCourseContent(
+    public ResponseEntity<Lesson> addCourseContent(
             @PathVariable String courseId,
-            @RequestBody CourseContent content) {
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isPresent()) {
-            Course course = courseOptional.get();
-            if (course.getContentList() == null) {
-                course.setContentList(new ArrayList<>());
-            }
-            content.setId(UUID.randomUUID().toString());
-            course.getContentList().add(content);
-            courseRepository.save(course);
-            return ResponseEntity.status(HttpStatus.CREATED).body(content);
-        } else {
+            @RequestBody Lesson content) {
+        
+        if (!courseRepository.existsById(courseId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-    }
-
-    @PutMapping("/{courseId}/content/{contentId}")
-    public ResponseEntity<CourseContent> updateCourseContent(
-            @PathVariable String courseId,
-            @PathVariable String contentId,
-            @RequestBody CourseContent updatedContent) {
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isPresent()) {
-            Course course = courseOptional.get();
-            if (course.getContentList() != null) {
-                for (int i = 0; i < course.getContentList().size(); i++) {
-                    if (course.getContentList().get(i).getId().equals(contentId)) {
-                        updatedContent.setId(contentId);
-                        course.getContentList().set(i, updatedContent);
-                        courseRepository.save(course);
-                        return ResponseEntity.ok(updatedContent);
-                    }
-                }
-            }
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    @DeleteMapping("/{courseId}/content/{contentId}")
-    public ResponseEntity<Void> deleteCourseContent(
-            @PathVariable String courseId,
-            @PathVariable String contentId) {
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isPresent()) {
-            Course course = courseOptional.get();
-            if (course.getContentList() != null) {
-                if (course.getContentList().removeIf(content -> content.getId().equals(contentId))) {
-                    courseRepository.save(course);
-                    return ResponseEntity.noContent().build();
-                }
-            }
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        
+        content.setCourseId(courseId);
+        content.setId(UUID.randomUUID().toString());
+        Lesson savedLesson = lessonRepository.save(content);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedLesson);
     }
 
     @PostMapping("/{courseId}/generate-content")
@@ -159,12 +201,20 @@ public class CourseController {
             List<CourseContent> generatedContent = contentGeneratorService
                     .generateContentForCourse(course.getTitle(), course.getCategory(), course.getLevel());
             
-            // Add the generated content to the course
-            if (course.getContentList() == null) {
-                course.setContentList(new ArrayList<>());
+            // Create lessons from the generated content
+            List<Lesson> lessons = new ArrayList<>();
+            for (CourseContent content : generatedContent) {
+                Lesson lesson = new Lesson();
+                lesson.setId(UUID.randomUUID().toString());
+                lesson.setCourseId(courseId);
+                lesson.setTitle(content.getTitle());
+                lesson.setContent(content.getContent());
+                lesson.setContentType(content.getContentType());
+                lesson.setOrder(content.getOrder());
+                lesson.setLessonType("Reading"); // Default type
+                
+                lessons.add(lessonRepository.save(lesson));
             }
-            course.getContentList().addAll(generatedContent);
-            courseRepository.save(course);
             
             return ResponseEntity.ok(generatedContent);
         } else {
@@ -234,32 +284,19 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/content/{contentId}/video")
-    public ResponseEntity<CourseContent> uploadLessonVideo(
+    public ResponseEntity<Lesson> uploadLessonVideo(
             @PathVariable String courseId,
             @PathVariable String contentId,
             @RequestParam("video") MultipartFile videoFile) {
         
         try {
-            // Find the course
-            Optional<Course> courseOptional = courseRepository.findById(courseId);
-            if (!courseOptional.isPresent()) {
+            // Find the lesson directly
+            Optional<Lesson> lessonOpt = lessonRepository.findById(contentId);
+            if (!lessonOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             
-            Course course = courseOptional.get();
-            CourseContent targetContent = null;
-            
-            // Find the specific content
-            for (CourseContent content : course.getContentList()) {
-                if (content.getId().equals(contentId)) {
-                    targetContent = content;
-                    break;
-                }
-            }
-            
-            if (targetContent == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+            Lesson lesson = lessonOpt.get();
             
             // Save the video file
             String fileName = StringUtils.cleanPath(videoFile.getOriginalFilename());
@@ -273,11 +310,11 @@ public class CourseController {
             Path filePath = uploadDir.resolve(uniqueFileName);
             Files.copy(videoFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             
-            // Update content with video path
-            targetContent.setVideoUrl("/uploads/videos/" + uniqueFileName);
-            courseRepository.save(course);
+            // Update lesson with video path
+            lesson.setVideoUrl("/uploads/videos/" + uniqueFileName);
+            lesson.setLessonType("Video");
             
-            return ResponseEntity.ok(targetContent);
+            return ResponseEntity.ok(lessonRepository.save(lesson));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -285,32 +322,19 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/content/{contentId}/resource")
-    public ResponseEntity<CourseContent> uploadLessonResource(
+    public ResponseEntity<Lesson> uploadLessonResource(
             @PathVariable String courseId,
             @PathVariable String contentId,
             @RequestParam("resource") MultipartFile resourceFile) {
-        
+    
         try {
-            // Find the course
-            Optional<Course> courseOptional = courseRepository.findById(courseId);
-            if (!courseOptional.isPresent()) {
+            // Find the lesson directly
+            Optional<Lesson> lessonOpt = lessonRepository.findById(contentId);
+            if (!lessonOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             
-            Course course = courseOptional.get();
-            CourseContent targetContent = null;
-            
-            // Find the specific content
-            for (CourseContent content : course.getContentList()) {
-                if (content.getId().equals(contentId)) {
-                    targetContent = content;
-                    break;
-                }
-            }
-            
-            if (targetContent == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+            Lesson lesson = lessonOpt.get();
             
             // Save the resource file
             String fileName = StringUtils.cleanPath(resourceFile.getOriginalFilename());
@@ -324,11 +348,10 @@ public class CourseController {
             Path filePath = uploadDir.resolve(uniqueFileName);
             Files.copy(resourceFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             
-            // Update content with resource path
-            targetContent.setResourceUrl("/uploads/resources/" + uniqueFileName);
-            courseRepository.save(course);
+            // Update lesson with resource path
+            lesson.setResourceUrl("/uploads/resources/" + uniqueFileName);
             
-            return ResponseEntity.ok(targetContent);
+            return ResponseEntity.ok(lessonRepository.save(lesson));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

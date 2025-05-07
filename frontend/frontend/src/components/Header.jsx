@@ -4,14 +4,30 @@ import { Navbar, Container, Nav, Button, Image, Dropdown } from 'react-bootstrap
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Green color scheme
+  const colors = {
+    primaryGreen: '#198754',    // Dark Green
+    lightGreen: '#d1e7dd',      // Light Green
+    darkGreen: '#1b5e20',       // Deep Green
+    white: '#ffffff',
+    lightGray: '#f8f9fa',
+    darkGray: '#212529'
+  };
 
   return (
-    <Navbar bg="white" expand="lg" className="shadow-sm border-bottom border-primary-subtle">
+    <Navbar bg="white" expand="lg" className="shadow-sm border-bottom" style={{ borderColor: colors.lightGreen }}>
       <Container>
         {/* Logo Section */}
         <Navbar.Brand as={Link} to="/">
           <div className="d-flex align-items-center">
-            <div className="bg-primary rounded d-flex align-items-center justify-content-center" style={{width: "40px", height: "40px"}}>
+            <div className="rounded d-flex align-items-center justify-content-center" 
+              style={{
+                width: "40px", 
+                height: "40px", 
+                backgroundColor: colors.primaryGreen
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="text-white"
@@ -29,7 +45,7 @@ export default function Header() {
                 />
               </svg>
             </div>
-            <span className="text-primary fw-bold ms-2 fs-4">MasterMind</span>
+            <span className="fw-bold ms-2 fs-4" style={{ color: colors.primaryGreen }}>MasterMind</span>
           </div>
         </Navbar.Brand>
 
@@ -37,10 +53,38 @@ export default function Header() {
         
         <Navbar.Collapse id="basic-navbar-nav" className={isOpen ? 'show' : ''}>
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/" className="px-3 py-2 mx-1 text-secondary fw-medium border-bottom border-white border-2 hover-border-primary">Dashboard</Nav.Link>
-            <Nav.Link as={Link} to="/courses" className="px-3 py-2 mx-1 text-secondary fw-medium border-bottom border-white border-2 hover-border-primary">Courses</Nav.Link>
-            <Nav.Link as={Link} to="/" className="px-3 py-2 mx-1 text-secondary fw-medium border-bottom border-white border-2 hover-border-primary">Analytics</Nav.Link>
-            <Nav.Link as={Link} to="/" className="px-3 py-2 mx-1 text-secondary fw-medium border-bottom border-white border-2 hover-border-primary">Reports</Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/" 
+              className="px-3 py-2 mx-1 fw-medium border-bottom border-white border-2 hover-border-primary"
+              style={{ color: colors.darkGray }}
+            >
+              Dashboard
+            </Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/courses" 
+              className="px-3 py-2 mx-1 fw-medium border-bottom border-white border-2 hover-border-primary"
+              style={{ color: colors.darkGray }}
+            >
+              Courses
+            </Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/" 
+              className="px-3 py-2 mx-1 fw-medium border-bottom border-white border-2 hover-border-primary"
+              style={{ color: colors.darkGray }}
+            >
+              Analytics
+            </Nav.Link>
+            <Nav.Link 
+              as={Link} 
+              to="/" 
+              className="px-3 py-2 mx-1 fw-medium border-bottom border-white border-2 hover-border-primary"
+              style={{ color: colors.darkGray }}
+            >
+              Reports
+            </Nav.Link>
           </Nav>
           
           {/* User Profile Dropdown */}
@@ -48,24 +92,25 @@ export default function Header() {
             <Dropdown.Toggle as="div" className="d-flex align-items-center cursor-pointer" style={{cursor: 'pointer'}}>
               <div className="d-flex align-items-center">
                 <div className="d-none d-md-flex flex-column align-items-end text-end me-2">
-                  <span className="fw-medium text-dark small">User Name</span>
-                  <span className="text-muted smaller">user@gmail.com</span>
+                  <span className="fw-medium small" style={{ color: colors.darkGray }}>User Name</span>
+                  <span className="smaller" style={{ color: colors.darkGray, opacity: 0.7 }}>user@gmail.com</span>
                 </div>
                 <Image 
                   src="https://via.placeholder.com/40" 
-                  className="border border-2 border-primary-subtle"
+                  className="border border-2"
+                  style={{ borderColor: colors.lightGreen }}
                   roundedCircle 
                   width={40} 
                   height={40} 
                   alt="User avatar" 
                 />
                 <svg
-                  className={`ms-2 text-secondary ${isOpen ? "rotate-180" : ""}`}
+                  className={`ms-2 ${isOpen ? "rotate-180" : ""}`}
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
                   height="20"
                   viewBox="0 0 20 20"
-                  fill="currentColor"
+                  fill={colors.darkGray}
                 >
                   <path
                     fillRule="evenodd"
@@ -84,6 +129,14 @@ export default function Header() {
           </Dropdown>
         </Navbar.Collapse>
       </Container>
+      
+      {/* Add CSS for the hover effect with the new colors */}
+      <style jsx>{`
+        .hover-border-primary:hover {
+          border-bottom-color: ${colors.primaryGreen} !important;
+          color: ${colors.primaryGreen} !important;
+        }
+      `}</style>
     </Navbar>
   );
 }

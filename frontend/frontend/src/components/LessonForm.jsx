@@ -16,9 +16,6 @@ const LessonForm = ({ onAddLesson, onRemoveLesson, lesson, index }) => {
     order: index + 1
   });
 
-  const [file, setFile] = useState(null);
-  const [resourceFile, setResourceFile] = useState(null);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setLessonData({
@@ -29,7 +26,7 @@ const LessonForm = ({ onAddLesson, onRemoveLesson, lesson, index }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAddLesson(lessonData, file, resourceFile);
+    onAddLesson(lessonData);
   };
 
   const lessonTypes = ['Video', 'Quiz', 'PDF', 'Text'];
@@ -91,33 +88,20 @@ const LessonForm = ({ onAddLesson, onRemoveLesson, lesson, index }) => {
           </Row>
 
           {lessonData.lessonType === 'Video' && (
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group controlId={`videoUpload-${index}`}>
-                  <Form.Label className="fw-medium">Video Upload</Form.Label>
-                  <Form.Control
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => setFile(e.target.files[0])}
-                  />
-                  <Form.Text className="text-muted">
-                    Upload a video file or provide a YouTube link below
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group controlId={`videoUrl-${index}`}>
-                  <Form.Label className="fw-medium">Video URL</Form.Label>
-                  <Form.Control
-                    type="url"
-                    name="videoUrl"
-                    value={lessonData.videoUrl}
-                    onChange={handleChange}
-                    placeholder="YouTube or Vimeo URL"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            <Form.Group className="mb-3" controlId={`videoUrl-${index}`}>
+              <Form.Label className="fw-medium">Video URL*</Form.Label>
+              <Form.Control
+                type="url"
+                name="videoUrl"
+                value={lessonData.videoUrl}
+                onChange={handleChange}
+                placeholder="Enter YouTube, Vimeo, or other video embed URL"
+                required={lessonData.lessonType === 'Video'}
+              />
+              <Form.Text className="text-muted">
+                Provide a link to your hosted video (YouTube, Vimeo, etc.)
+              </Form.Text>
+            </Form.Group>
           )}
 
           {lessonData.lessonType === 'Quiz' && (
@@ -150,14 +134,17 @@ const LessonForm = ({ onAddLesson, onRemoveLesson, lesson, index }) => {
 
           <Row className="mb-3">
             <Col md={6}>
-              <Form.Group controlId={`resources-${index}`}>
-                <Form.Label className="fw-medium">Lesson Resources</Form.Label>
+              <Form.Group controlId={`resourceUrl-${index}`}>
+                <Form.Label className="fw-medium">Resource URL</Form.Label>
                 <Form.Control
-                  type="file"
-                  onChange={(e) => setResourceFile(e.target.files[0])}
+                  type="url"
+                  name="resourceUrl"
+                  value={lessonData.resourceUrl}
+                  onChange={handleChange}
+                  placeholder="Enter URL for downloadable resources"
                 />
                 <Form.Text className="text-muted">
-                  Upload PDF, code files, or additional materials
+                  Provide a link to downloadable resources (PDFs, code files, etc.)
                 </Form.Text>
               </Form.Group>
             </Col>
