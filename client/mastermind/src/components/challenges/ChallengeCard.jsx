@@ -56,7 +56,7 @@ function ChallengeCard({ challenge }) {
           <div className="d-flex align-items-center">
             <FaUsers className="text-primary me-1" />
             <span className="fs-6">
-              {challenge.enrolledUsers?.length || 0} enrolled
+              {challenge.enrolledUsers?.length || 0} enrolled user
             </span>
           </div>
           <Button

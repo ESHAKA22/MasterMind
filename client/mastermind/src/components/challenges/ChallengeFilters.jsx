@@ -53,7 +53,7 @@ function ChallengeFilters({ onFilterChange, onClear }) {
       <Card.Body>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h5 className="m-0 d-flex align-items-center">
-            <FaFilter className="me-2 text-primary" /> Filters
+            <FaFilter className="me-2 text-primary" /> Filters 
           </h5>
           {isFilterActive() && (
             <Button
@@ -62,7 +62,7 @@ function ChallengeFilters({ onFilterChange, onClear }) {
               onClick={handleClearFilters}
               className="d-flex align-items-center"
             >
-              <FaTimes className="me-1" /> Clear All
+              <FaTimes className="me-1" /> Clear All Filters
             </Button>
           )}
         </div>

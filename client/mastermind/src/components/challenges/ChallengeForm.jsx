@@ -4,14 +4,7 @@ import { FaSave, FaTimes } from "react-icons/fa";
 import PropTypes from "prop-types";
 
 // Sample category and difficulty options
-const CATEGORIES = [
-  "JS",
-  "PHP",
-  "Python",
-  "HTML/CSS",
-  "MERN",
-  "WordPress",
-];
+const CATEGORIES = ["JS", "PHP", "Python", "HTML/CSS", "MERN", "WordPress"];
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
 function ChallengeForm({ challenge, onSubmit, isLoading, error }) {
@@ -126,7 +119,7 @@ function ChallengeForm({ challenge, onSubmit, isLoading, error }) {
               placeholder="Describe the challenge"
             />
             <Form.Control.Feedback type="invalid">
-              Please provide a description.
+              Please provide a description of the challenge.
             </Form.Control.Feedback>
           </Form.Group>
 
