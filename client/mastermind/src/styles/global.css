@@ -1,0 +1,134 @@
+@import 'variables.css';
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: var(--space-4) 0;
+}
+
+/* Custom Bootstrap button styles */
+.btn-primary {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
+.btn-primary:hover,
+.btn-primary:active, 
+.btn-primary:focus {
+  background-color: var(--dark-green) !important;
+  border-color: var(--dark-green) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+  color: var(--white);
+}
+
+/* Custom card styles */
+.card {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  border: 1px solid var(--border-gray);
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  background-color: var(--primary-green);
+  color: var(--white);
+  font-weight: 500;
+}
+
+/* Custom form controls */
+.form-control:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* Badge styles */
+.badge-green {
+  background-color: var(--light-green);
+  color: var(--dark-green);
+  padding: 0.35em 0.65em;
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+/* Page titles */
+.page-title {
+  color: var(--primary-green);
+  margin-bottom: var(--space-4);
+  font-weight: 600;
+}
+
+/* Navbar custom styles */
+.navbar-brand {
+  font-weight: 700;
+  color: var(--primary-green) !important;
+}
+
+.nav-link {
+  color: var(--dark-gray);
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-link.active {
+  color: var(--primary-green) !important;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--primary-green);
+  transition: width var(--transition-speed);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
