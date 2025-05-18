@@ -766,7 +766,7 @@ function ChallengeDetails() {
                       ) : (
                         <div className="text-center">
                           <p className="mb-0">
-                            Timer not active or has expired.
+                            Timer not active or has expired........
                           </p>
                         </div>
                       )}
@@ -778,7 +778,7 @@ function ChallengeDetails() {
                   <p>
                     Ready to take on this challenge? Enroll now and start
                     tracking your progress! A 5-minute timer will start
-                    automatically.
+                    automatically once you enroll.
                   </p>
                   <Button
                     variant="primary"
@@ -812,13 +812,13 @@ function ChallengeDetails() {
               <hr className="my-4" />
 
               <div className="text-center">
-                <h6>Share this challenge</h6>
+                <h6>Share this challenge </h6>
                 <div className="d-flex justify-content-center mt-3">
                   <Button variant="outline-primary" size="sm" className="mx-1">
                     Facebook
                   </Button>
                   <Button variant="outline-info" size="sm" className="mx-1">
-                    Twitter
+                    Twitter 
                   </Button>
                   <Button variant="outline-dark" size="sm" className="mx-1">
                     Copy Link
